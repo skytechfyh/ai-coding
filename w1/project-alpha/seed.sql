@@ -1,0 +1,21 @@
+-- Project Alpha 种子数据脚本
+-- 运行方式: psql -d project_alpha -f seed.sql
+-- 或者使用 Python 执行
+
+-- 数据统计:
+-- Tags: 39 个
+--   - 平台: iOS, Android, Web, macOS, Windows, Linux
+--   - 项目: Viking, Apollo, Titan, Helios, Athena, Hermes
+--   - 功能: autocomplete, search, notification, analytics, payment, auth, offline, sync, export, import
+--   - 类型: Bug, Feature, Enhancement, Refactor, Docs, Testing, Security, Performance, UI/UX, Accessibility
+--   - 优先级: P0-Critical, P1-High, P2-Medium, P3-Low
+--   - Sprint: Sprint-2024-Q1, Sprint-2024-Q2, Backlog
+--
+-- Tickets: 57 个
+--   - 52 个 pending
+--   - 5 个 completed
+--
+-- 关联: 147 个 ticket-tag 关联
+
+-- 注意: 此文件为文档参考，实际数据已通过 Python 插入数据库
+-- 如需重新执行，请运行 backend 目录下的 Python 脚本
