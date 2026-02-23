@@ -153,6 +153,14 @@ w1/project-alpha/backend/.env
 w1/project-alpha/backend/venv/
 w1/project-alpha/frontend/node_modules/
 w1/project-alpha/frontend/dist/
+
+# w2/db_query
+w2/db_query/backend/.env
+w2/db_query/backend/.venv/
+w2/db_query/backend/__pycache__/
+w2/db_query/frontend/node_modules/
+w2/db_query/frontend/dist/
+
 .envrc
 .venv
 env/
