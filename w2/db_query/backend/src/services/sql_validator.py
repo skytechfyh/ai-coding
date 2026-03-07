@@ -1,6 +1,7 @@
 """SQL validation and LIMIT injection service."""
 import sqlglot
 from sqlglot import exp
+from sqlglot.dialects import MySQL, Postgres
 
 
 class SQLValidationError(Exception):
@@ -8,11 +9,12 @@ class SQLValidationError(Exception):
     pass
 
 
-def validate_and_fix_sql(sql: str) -> tuple[str, bool, str]:
+def validate_and_fix_sql(sql: str, db_type: str = "postgresql") -> tuple[str, bool, str]:
     """Validate SQL and add LIMIT if missing.
 
     Args:
         sql: SQL query to validate
+        db_type: Database type ('postgresql' or 'mysql')
 
     Returns:
         Tuple of (fixed_sql, is_valid, error_message)
@@ -23,7 +25,10 @@ def validate_and_fix_sql(sql: str) -> tuple[str, bool, str]:
         if sql.endswith(";"):
             sql = sql[:-1].strip()
 
-        statements = sqlglot.parse(sql)
+        # Choose dialect based on database type
+        dialect = "mysql" if db_type == "mysql" else "postgres"
+
+        statements = sqlglot.parse(sql, dialect=dialect)
         if not statements:
             return "", False, "Empty SQL"
 
@@ -37,9 +42,9 @@ def validate_and_fix_sql(sql: str) -> tuple[str, bool, str]:
         if not stmt.find(exp.Limit):
             # Add LIMIT 1000
             stmt.set("limit", exp.Limit(expression=exp.Literal.number(1000)))
-            return stmt.sql(), True, ""
+            return stmt.sql(dialect=dialect), True, ""
         else:
-            return sql, True, ""
+            return stmt.sql(dialect=dialect), True, ""
 
     except sqlglot.errors.ParseError as e:
         return "", False, f"SQL syntax error: {str(e)}"

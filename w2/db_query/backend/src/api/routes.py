@@ -152,8 +152,11 @@ def execute_query(name: str, request: schemas.QueryRequest) -> dict[str, Any]:
     if not conn:
         raise HTTPException(status_code=404, detail=f"Database '{name}' not found")
 
+    # Determine database type
+    db_type = database.get_database_type(conn["url"])
+
     # Validate and fix SQL
-    fixed_sql, is_valid, error_msg = sql_validator.validate_and_fix_sql(request.sql)
+    fixed_sql, is_valid, error_msg = sql_validator.validate_and_fix_sql(request.sql, db_type)
     if not is_valid:
         return {
             "success": False,
@@ -256,8 +259,11 @@ def export_csv(name: str, sql: str) -> dict[str, Any]:
     if not conn:
         raise HTTPException(status_code=404, detail=f"Database '{name}' not found")
 
+    # Determine database type
+    db_type = database.get_database_type(conn["url"])
+
     # Validate and fix SQL
-    fixed_sql, is_valid, error_msg = sql_validator.validate_and_fix_sql(sql)
+    fixed_sql, is_valid, error_msg = sql_validator.validate_and_fix_sql(sql, db_type)
     if not is_valid:
         return {"success": False, "data": None, "errorMessage": error_msg}
 
@@ -284,8 +290,11 @@ def export_json(name: str, sql: str) -> dict[str, Any]:
     if not conn:
         raise HTTPException(status_code=404, detail=f"Database '{name}' not found")
 
+    # Determine database type
+    db_type = database.get_database_type(conn["url"])
+
     # Validate and fix SQL
-    fixed_sql, is_valid, error_msg = sql_validator.validate_and_fix_sql(sql)
+    fixed_sql, is_valid, error_msg = sql_validator.validate_and_fix_sql(sql, db_type)
     if not is_valid:
         return {"success": False, "data": None, "errorMessage": error_msg}
 

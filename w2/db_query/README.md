@@ -4,10 +4,10 @@ A web-based database query tool that allows users to connect to databases, view 
 
 ## Features
 
-- Connect to PostgreSQL databases
+- Connect to PostgreSQL and MySQL databases
 - View table and view metadata (columns, types, primary keys)
 - Execute SQL SELECT queries
-- Generate SQL from natural language using OpenAI
+- Generate SQL from natural language using Claude API
 - Results displayed in a table format
 
 ## Tech Stack
@@ -17,8 +17,9 @@ A web-based database query tool that allows users to connect to databases, view 
 - FastAPI
 - Pydantic V2
 - SQLGlot (SQL parsing)
-- OpenAI SDK
+- Anthropic SDK (Claude API)
 - psycopg2 (PostgreSQL driver)
+- pymysql (MySQL driver)
 
 ### Frontend
 - TypeScript 5+
@@ -32,8 +33,8 @@ A web-based database query tool that allows users to connect to databases, view 
 
 - Python 3.11+
 - Node.js 18+
-- PostgreSQL database (for testing)
-- OpenAI API key
+- PostgreSQL or MySQL database (for testing)
+- Anthropic API key (Claude API)
 
 ## Setup
 
@@ -50,7 +51,7 @@ uv sync
 
 # Copy environment file
 cp .env.example .env
-# Edit .env and add your OPENAI_API_KEY
+# Edit .env and add your ANTHROPIC_API_KEY
 
 # Run the server
 uv run python -m uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
@@ -88,7 +89,9 @@ The app will be available at http://localhost:5173
 1. Start the backend server
 2. Start the frontend development server
 3. Open http://localhost:5173 in your browser
-4. Click "Add Database" to add a PostgreSQL connection
+4. Click "Add Database" to add a PostgreSQL or MySQL connection
+   - PostgreSQL: `postgresql://user:password@localhost:5432/dbname`
+   - MySQL: `mysql://user:password@localhost:3306/dbname`
 5. Select a database to view its tables and columns
 6. Write SQL in the editor or use natural language to generate SQL
 7. Click Execute to run the query

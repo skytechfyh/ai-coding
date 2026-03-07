@@ -4,6 +4,7 @@ import os
 from anthropic import Anthropic
 from anthropic.types import TextBlock, ThinkingBlock
 
+from .database import get_database_type
 from .metadata import get_table_schema_description
 
 
@@ -33,10 +34,34 @@ def generate_sql_from_natural_language(
 
     base_url = os.getenv("ANTHROPIC_BASE_URL")
 
+    # Detect database type
+    db_type = get_database_type(url)
+    db_name = "PostgreSQL" if db_type == "postgresql" else "MySQL"
+
     # Generate schema description
     schema_description = get_table_schema_description(tables)
 
-    system_prompt = f"""You are a PostgreSQL SQL expert. Given a natural language query,
+    # Build system prompt based on database type
+    if db_type == "mysql":
+        system_prompt = f"""You are a MySQL SQL expert. Given a natural language query,
+generate a valid MySQL SELECT statement.
+
+{schema_description}
+
+Rules:
+1. Only generate SELECT statements - never INSERT, UPDATE, DELETE, CREATE, DROP, etc.
+2. Always include LIMIT 1000 unless the query has its own LIMIT
+3. Use proper table and column names from the schema
+4. Use correct MySQL syntax:
+   - Use backticks (`) for identifiers if needed
+   - Use CONCAT() for string concatenation
+   - Use NOW(), CURDATE(), CURTIME() for date/time functions
+   - Boolean values are 1/0 (TINYINT)
+5. If the query cannot be determined, return an error message starting with "ERROR:"
+
+Return ONLY the SQL statement, no explanations or markdown."""
+    else:
+        system_prompt = f"""You are a PostgreSQL SQL expert. Given a natural language query,
 generate a valid PostgreSQL SELECT statement.
 
 {schema_description}
