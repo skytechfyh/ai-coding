@@ -1,0 +1,19 @@
+databases:
+  - alias: "main"
+    host: "localhost"
+    port: 5432
+    dbname: "mydb"
+    user: "${DB_USER}"
+    password: "${DB_PASSWORD}"
+    schemas:
+      - "public"
+
+openai:
+  api_key: "${OPENAI_API_KEY}"
+  model: "gpt-4o-mini"
+
+server:
+  query_timeout_seconds: 30
+  result_validation_sample_rows: 5
+  max_result_rows: 1000
+  auto_retry_on_invalid: false
