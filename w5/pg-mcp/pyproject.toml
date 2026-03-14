@@ -29,6 +29,13 @@ dev-dependencies = [
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
+markers = [
+    "unit: pure unit tests, no external dependencies",
+    "integration: requires real PostgreSQL (TEST_PG_DSN)",
+    "e2e: end-to-end tests (TEST_PG_DSN + OPENAI_API_KEY)",
+    "slow: execution time > 5s",
+]
+addopts = "-m 'not e2e'"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/pg_mcp"]

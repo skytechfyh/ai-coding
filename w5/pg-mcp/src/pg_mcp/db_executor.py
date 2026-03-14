@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import decimal
 import time
+import uuid
 from datetime import date, datetime
 
 import asyncpg
@@ -19,6 +20,8 @@ def _serialize_value(v: object) -> object:
         return float(v)
     if isinstance(v, (bytes, memoryview)):
         return "<binary>"
+    if isinstance(v, uuid.UUID):
+        return str(v)
     return v
 
 

@@ -198,8 +198,86 @@ def test_relevant_tables_max_tables_limit() -> None:
     tables = [make_table(f"table_{i}") for i in range(50)]
     cache = make_cache(tables)
     result = cache.get_relevant_tables("query", max_tables=5)
-    # 即使 FK 扩展，也不应超过所有表的数量
-    assert len(result) <= len(tables)
+    assert len(result) == 5
+
+
+# ── relevance_score ──────────────────────────────────────────────────────
+
+def test_relevance_score_match() -> None:
+    table = make_table("users", columns=[
+        ColumnInfo(name="id", data_type="int4", is_nullable=False),
+        ColumnInfo(name="email", data_type="text", is_nullable=True),
+    ])
+    score = table.relevance_score({"users", "email"})
+    assert score == 2
+
+
+def test_relevance_score_no_match() -> None:
+    table = make_table("orders")
+    score = table.relevance_score({"users", "email"})
+    assert score == 0
+
+
+# ── _tokenize_query ──────────────────────────────────────────────────────
+
+def test_tokenize_query_mixed() -> None:
+    from pg_mcp.models import _tokenize_query
+    tokens = _tokenize_query("查询 users 的 email 信息")
+    assert "users" in tokens
+    assert "email" in tokens
+    assert "查" in tokens
+    assert "息" in tokens
+    assert "的" not in tokens  # stop word
+
+
+def test_tokenize_query_only_stopwords() -> None:
+    from pg_mcp.models import _tokenize_query
+    tokens = _tokenize_query("show all the list of")
+    assert len(tokens) == 0
+
+
+def test_tokenize_query_empty() -> None:
+    from pg_mcp.models import _tokenize_query
+    tokens = _tokenize_query("")
+    assert tokens == set()
+
+
+# ── edge cases ───────────────────────────────────────────────────────────
+
+def test_get_relevant_tables_fk_to_unknown_table() -> None:
+    """FK target 不在 tables 中时不崩溃"""
+    orders = make_table(
+        "orders",
+        foreign_keys=[
+            ForeignKeyInfo(
+                constraint_name="fk_ghost",
+                local_columns=["user_id"],
+                foreign_table="public.ghost_table",
+                foreign_columns=["id"],
+            )
+        ],
+    )
+    cache = make_cache([orders])
+    result = cache.get_relevant_tables("orders", max_tables=5)
+    assert any(t.table_name == "orders" for t in result)
+
+
+def test_get_relevant_tables_empty_query() -> None:
+    tables = [make_table(f"t{i}") for i in range(10)]
+    cache = make_cache(tables)
+    result = cache.get_relevant_tables("", max_tables=5)
+    assert len(result) == 5
+
+
+def test_get_relevant_tables_large_schema() -> None:
+    import time
+    tables = [make_table(f"table_{i}") for i in range(500)]
+    cache = make_cache(tables)
+    start = time.monotonic()
+    result = cache.get_relevant_tables("find user orders", max_tables=20)
+    elapsed = time.monotonic() - start
+    assert elapsed < 0.1
+    assert len(result) <= 500
 
 
 # ── CamelCase 序列化 ────────────────────────────────────────────────────

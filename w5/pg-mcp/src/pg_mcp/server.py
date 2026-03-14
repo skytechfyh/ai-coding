@@ -36,9 +36,6 @@ _pools: dict[str, Any] = {}
 _openai: AsyncOpenAI | None = None
 _config: AppConfig | None = None
 
-mcp = FastMCP("pg-mcp")
-
-
 # ── Lifespan ─────────────────────────────────────────────────────────────────
 
 @asynccontextmanager
@@ -208,10 +205,10 @@ async def query_to_result(
         return {"errorCode": "NO_DATABASE_AVAILABLE", "message": str(e)}
 
     # 生成 SQL
+    assert _openai is not None
+    relevant_tables = cache.get_relevant_tables(query, max_tables=20)
+    schema_text = build_schema_text(relevant_tables)
     try:
-        assert _openai is not None
-        relevant_tables = cache.get_relevant_tables(query, max_tables=20)
-        schema_text = build_schema_text(relevant_tables)
         sql = await generate_sql(_openai, _config.openai.model, query, schema_text)
     except Exception as e:
         return {"errorCode": "LLM_ERROR", "message": f"Failed to generate SQL: {e}"}

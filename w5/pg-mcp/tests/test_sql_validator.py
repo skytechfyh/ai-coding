@@ -77,3 +77,43 @@ def test_returns_postgres_dialect() -> None:
     assert err is None
     # Should be valid SQL string
     assert "SELECT" in out.upper()
+
+
+# ── Edge cases ─────────────────────────────────────────────────────────────
+
+def test_validate_sql_union_all() -> None:
+    """UNION ALL 被 sqlglot 解析为 Union 类型，被 layer-3 拒绝（已知限制）"""
+    sql = "SELECT id FROM users UNION ALL SELECT id FROM orders"
+    _, err = validate_sql(sql)
+    assert err is not None  # Union is not exp.Select
+
+
+def test_validate_sql_window_function() -> None:
+    sql = "SELECT id, ROW_NUMBER() OVER (ORDER BY id) FROM users"
+    out, err = validate_sql(sql)
+    assert err is None
+
+
+def test_validate_sql_subquery() -> None:
+    sql = "SELECT id FROM users WHERE id IN (SELECT user_id FROM orders)"
+    out, err = validate_sql(sql)
+    assert err is None
+
+
+def test_validate_sql_trailing_semicolon() -> None:
+    out, err = validate_sql("SELECT * FROM users;")
+    assert err is None
+
+
+def test_validate_sql_string_with_double_dash() -> None:
+    """字符串字面量中含 '--' 被 layer-1 误报为注释（已知限制）"""
+    sql = "SELECT * FROM logs WHERE message = 'Error -- retrying'"
+    _, err = validate_sql(sql)
+    assert err is not None  # 已知误报
+
+
+def test_validate_sql_select_into_passes() -> None:
+    """SELECT INTO 被 sqlglot 解析为 Select，通过验证（已知限制）"""
+    sql = "SELECT * INTO backup_users FROM users"
+    out, err = validate_sql(sql)
+    assert err is None  # sqlglot parses this as Select
